@@ -127,19 +127,23 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ```json
 {
-  "source": "website",
-  "salonName": "Glamour Studio",
-  "branchNumber": "001",
+  "source": "Instagram Ads",
+  "preferredStartDate": "2025-06-10",
+  "salonName": "Blush & Glow",
+  "branchNumber": "3",
   "city": "Mumbai",
   "avgMonthlyFootfall": 300,
-  "clientType": "walk-in",
-  "contactName": "Rohit Sharma",
-  "contactEmail": "rohit@example.com",
+  "clientType": "Premium",
+
+  "contactName": "Ananya Sharma",
+  "contactEmail": "ananya@example.com",
   "contactPhone": "9876543210",
   "contactDesignation": "Manager",
-  "businessType": "Franchise",
-  "gstin": "29ABCDE1234F2Z5"
+
+  "businessType": "Private Limited",
+  "gstin": "27ABCDE1234F2Z5"
 }
+
 ```
 
 ### `PasswordSetupRequest`
@@ -151,6 +155,12 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
   "leadId": "uuid-of-lead"
 }
 ```
+---
+
+### ✅ **4th June 2025**
+* Local Testing on Email Service Done
+* Mail will be sent only once when approved
+* Added Preferred Start Data along with Partner Lead
 
 ---
 
