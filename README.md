@@ -1,80 +1,162 @@
-# Eagle Verse Backend DOCS cum UPDATES
-
-# Updates
-## 30th May, 2025 : Made entities Business Details, PartnerLead, PrimaryContact, SalonInfo
-When a salon owner or manager opens the “Partner With Us” form, they’ll fill out fields like:
-- Salon Info:
-name, branch number, city, average monthly footfall, client type (walk-in, appointment, etc.)
-- Primary Contact:
-name, email, phone, designation (manager, owner, etc.)
-- Business Detail:
-business type, GSTIN
-The form may also internally capture the source (e.g., "website", "campaign", "app" etc.)
-- Frontend Sends:
-All this data will be bundled into one PartnerLeadRequest and sent to the backend via a POST API.
-
-## 31st May: Made DTOS, REST controlled, Linked with MySQL (updated 3rd June)
-- POST /api/leads: Create a new lead. <br />
-  @RequestBody PartnerLeadRequest request <br /> 
-- GET /api/leads: Get all leads. 
-- GET /api/leads/summary: Get a summary of all leads.
-- GET /api/leads/get-id/{email}: Get lead ID by email. <br />
-  @PathVariable String email <br />
-- GET /api/leads/{id}: Get a specific lead by its ID. <br />
-  @PathVariable UUID id <br />
-- PUT /api/leads/{id}: Update a specific lead by its ID. <br />
-  @PathVariable UUID id, @RequestBody PartnerLeadUpdateRequest request <br />
-- DELETE /api/leads/{id}: Delete a specific lead by its ID. <br />
-  @PathVariable UUID id <br />
-- PATCH /api/leads/{id}/status: Update the status of a specific lead. <br />
-  @PathVariable UUID id, @RequestParam LeadStatus status <br />
-- POST /api/auth/resend-invite/{leadId}: Resend an invitation to a lead. <br />
-  @PathVariable UUID leadId <br />
-- GET /api/auth/check-token: Check if a token is valid. <br />
-  @RequestParam String token <br />
-- POST /api/auth/set-password: Set a password using a token/request. <br />
-  @RequestBody PasswordSetupRequest request <br />
-
-  
-  
- ## 31st May update 2: Testing of APIs done with postman. API public access left. After testing with frontend will host it.
 
 
-## 1st June: 
-Pushed new api <url>/api/leads/summary. 
-Working on email service
+# EagleVerse AI – Partner With Us (Backend)
 
-## 2nd June
-Added Spring Secuity to DELETE and PATCH apis. These two now requre Basic Auth . <br />
-401 - AUnauthorized  and 403- Forbidden    <br />
-For testing use Basic Auth , username: admin, password: eagle123
+This repository contains the backend service for **EagleVerse AI's Partner With Us** module, built with Spring Boot. It enables salon managers and owners to submit partnership requests and helps the internal team manage and track these leads.
 
-## 3rd June
-Added new Email Service to set password for Leads that have been approved by our team.
-Added new API endpoints. [updated above] 
-### format for request DTO
-PartnerLeadRequest
-```
+---
+
+## 🛠 Tech Stack
+
+* Java 17
+* Spring Boot
+* Spring Security
+* MySQL
+* Redis (for token storage)
+* JavaMailSender (for email communication)
+* Postman (for API testing)
+
+---
+
+## 📌 Key Features
+
+* Submit detailed partnership requests
+* Store and retrieve leads via REST APIs
+* Send password setup links via email
+* Protect sensitive APIs using Basic Auth
+* Track request source (website, app, campaigns, etc.)
+
+---
+
+## 📅 Updates & Changelog
+
+### ✅ **30th May 2025**
+
+**Entities Created**:
+
+* `BusinessDetails`
+* `PartnerLead`
+* `PrimaryContact`
+* `SalonInfo`
+
+**Form Fields Captured**:
+
+* **Salon Info**: Name, branch number, city, average monthly footfall, client type (walk-in/appointment)
+* **Primary Contact**: Name, email, phone, designation (manager/owner)
+* **Business Detail**: Business type, GSTIN
+* **Meta Info**: Lead source (e.g., website, campaign, app)
+
+> The frontend sends this as a single `PartnerLeadRequest` to the backend via `POST`.
+
+---
+
+### ✅ **31st May 2025**
+
+* Added DTOs
+* Integrated with MySQL
+* Created REST APIs
+
+> 🔐 `DELETE` and `PATCH` APIs now require **Basic Authentication**
+
+---
+
+## 🔗 API Endpoints
+
+### 📂 **Lead Management** (`/api/leads`)
+
+| Method   | Endpoint                    | Description                     | Access     |
+| -------- | --------------------------- | ------------------------------- | ---------- |
+| `GET`    | `/api/leads`                | Fetch all leads                 | Public     |
+| `GET`    | `/api/leads/{id}`           | Fetch a specific lead by ID     | Public     |
+| `GET`    | `/api/leads/summary`        | Fetch summary view of all leads | Public     |
+| `GET`    | `/api/leads/get-id/{email}` | Fetch lead ID by email          | Public     |
+| `POST`   | `/api/leads`                | Create a new lead               | Admin Only |
+| `PUT`    | `/api/leads/{id}`           | Update an existing lead         | Admin Only |
+| `PATCH`  | `/api/leads/{id}/status`    | Update lead status              | Admin Only |
+| `DELETE` | `/api/leads/{id}`           | Delete a lead                   | Admin Only |
+
+---
+
+### 🔐 **Authentication & Token Setup** (`/api/auth`)
+
+| Method | Endpoint                           | Description                                        | Access     |
+| ------ | ---------------------------------- | -------------------------------------------------- | ---------- |
+| `POST` | `/api/auth/set-password`           | Set password using token, leadId, and new password | Public     |
+| `POST` | `/api/auth/resend-invite/{leadId}` | Resend invite link to lead email                   | Admin Only |
+| `GET`  | `/api/auth/check-token`            | Validate password setup token                      | Public     |
+
+---
+
+### 🔐 Auth Info
+
+* **Admin Only** endpoints require `ROLE_ADMIN` and are protected by Spring Security.
+* For local testing, Basic Auth credentials are:
+
+  * **Username**: `admin`
+  * **Password**: `eagle123`
+
+---
+
+### ✅ **1st June 2025**
+
+* Pushed new summary API: `/api/leads/summary`
+* Email service under development
+
+---
+
+### ✅ **2nd June 2025**
+
+* Added **Spring Security** to `DELETE` and `PATCH` endpoints
+
+> For testing use:
+> **Username**: `admin`
+> **Password**: `eagle123`
+
+---
+
+### ✅ **3rd June 2025**
+
+* Implemented email service to send password setup links
+* Updated API list to include auth-related endpoints
+
+---
+
+## 📦 Request DTO Formats
+
+### `PartnerLeadRequest`
+
+```json
 {
-source
-salonName
-branchNumber
-city
-avgMonthlyFootfall
-clientType
-contactName
-contactEmail
-contactPhone
-contactDesignation
-businessType
-gstin
+  "source": "website",
+  "salonName": "Glamour Studio",
+  "branchNumber": "001",
+  "city": "Mumbai",
+  "avgMonthlyFootfall": 300,
+  "clientType": "walk-in",
+  "contactName": "Rohit Sharma",
+  "contactEmail": "rohit@example.com",
+  "contactPhone": "9876543210",
+  "contactDesignation": "Manager",
+  "businessType": "Franchise",
+  "gstin": "29ABCDE1234F2Z5"
 }
 ```
-PasswordSetupRequest
-```
+
+### `PasswordSetupRequest`
+
+```json
 {
-token
-newPassword
-leadId
+  "token": "abc123tokenvalue",
+  "newPassword": "newSecurePassword",
+  "leadId": "uuid-of-lead"
 }
 ```
+
+---
+
+## 🔍 Testing
+
+Postman was used to validate all APIs. Public access is currently allowed for testing; auth will be tightened after frontend integration.
+
+---
+
