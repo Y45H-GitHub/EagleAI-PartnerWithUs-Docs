@@ -28,64 +28,51 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
-## 📅 Updates & Changelog
-
-### ✅ **30th May 2025**
-
-**Entities Created**:
-
-* `BusinessDetails`
-* `PartnerLead`
-* `PrimaryContact`
-* `SalonInfo`
-
-**Form Fields Captured**:
-
-* **Salon Info**: Name, branch number, city, average monthly footfall, client type (walk-in/appointment)
-* **Primary Contact**: Name, email, phone, designation (manager/owner)
-* **Business Detail**: Business type, GSTIN
-* **Meta Info**: Lead source (e.g., website, campaign, app)
-
-> The frontend sends this as a single `PartnerLeadRequest` to the backend via `POST`.
-
----
-
-### ✅ **31st May 2025**
-
-* Added DTOs
-* Integrated with MySQL
-* Created REST APIs
-
-> 🔐 `DELETE` and `PATCH` APIs now require **Basic Authentication**
-
----
-
 ## 🔗 API Endpoints
 
-### 📂 **Lead Management** (`/api/leads`)
+### 📂 Lead Management (`/api/leads`)
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|--------------|
+| `GET` | `/leads` | Fetch all leads | `PUBLIC` | *None* | 200, 404 |
+| `GET` | `/leads/{id}` | Fetch specific lead | `PUBLIC` | `id` in path | 200, 404 |
+| `GET` | `/leads/summary` | Fetch summary view | `PUBLIC` | *None* | 200 |
+| `GET` | `/leads/get-id/{email}` | Get lead ID by email | `PUBLIC` | `email` in path | 200, 404 |
+| `POST` | `/leads` | Create new lead | `ROLE_ADMIN` | Body: `PartnerLeadRequest` | 201, 400 |
+| `PUT` | `/leads/{id}` | Update lead | `ROLE_ADMIN` | `id` in path + Body: `PartnerLeadUpdateRequest` | 200, 400 |
+| `PATCH` | `/leads/{id}/status` | Update status | `ROLE_ADMIN` | `id` in path + status as parameter | 200, 400 |
+| `DELETE` | `/leads/{id}` | Delete lead | `ROLE_ADMIN` | `id` in path | 204, 404 |
 
-| Method   | Endpoint                    | Description                     | Access     |
-| -------- | --------------------------- | ------------------------------- | ---------- |
-| `GET`    | `/api/leads`                | Fetch all leads                 | Public     |
-| `GET`    | `/api/leads/{id}`           | Fetch a specific lead by ID     | Public     |
-| `GET`    | `/api/leads/summary`        | Fetch summary view of all leads | Public     |
-| `GET`    | `/api/leads/get-id/{email}` | Fetch lead ID by email          | Public     |
-| `POST`   | `/api/leads`                | Create a new lead               | Admin Only |
-| `PUT`    | `/api/leads/{id}`           | Update an existing lead         | Admin Only |
-| `PATCH`  | `/api/leads/{id}/status`    | Update lead status              | Admin Only |
-| `DELETE` | `/api/leads/{id}`           | Delete a lead                   | Admin Only |
+### 🔐 Authentication (`/api/auth`)
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|--------------|
+| `POST` | `/auth/set-password` | Set password | `PUBLIC` | Body: `PasswordSetupRequest` | 200, 400 |
+| `POST` | `/auth/resend-invite/{leadId}` | Resend invite | `ROLE_ADMIN` | `leadId` in path | 200, 404 |
+| `GET` | `/auth/check-token` | Validate token | `PUBLIC` | in param `token` and `leadId` | 200, 410 |
+| `GET` | `/auth/request-reset-password` | To reequest to reset password | `PUBLIC` | Body `ResetPasswordRequest` | 200, 410 |
+| `POST` | `/auth/login` | Generate JWT | `PUBLIC` | Body: `AuthRequest` | 200, 401 |
 
----
+### 👥 Salon Staff Management (`/api`)
+#### Staff Listing & Details
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|--------------|
+| `GET` | `/salon-user/get-all` | Get all users | `PUBLIC` | *None* | 200 |
+| `GET` | `/salon-user/salon-staff` | Get salon staff | `BEARER_JWT` | param: `?salonId=ID&requestId=ID` | 200, 403 |
+| `GET` | `/salon-user/staff/{staffId}` | Get staff details | `BEARER_JWT` | `staffId` in path + param: `?requestId=ID` | 200, 404 |
 
-### 🔐 **Authentication & Token Setup** (`/api/auth`)
+#### Staff Onboarding
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|--------------|
+| `POST` | `/salon-user/register` | Manual registration | `BEARER_JWT` | Body: `ManualStaffRegistrationRequest` | 201, 400 |
+| `POST` | `/salon-user/invite` | Send invite | `BEARER_JWT` | Body: `StaffInviteRequest` + param: `?invitedBy=ID` | 200, 400 |
+| `POST` | `/salon-user/complete-registration` | Complete registration | `PUBLIC` | Body: `CompleteStaffRegistrationRequest` | 200, 410 |
 
-| Method | Endpoint                           | Description                                        | Access     |
-| ------ | ---------------------------------- | -------------------------------------------------- | ---------- |
-| `POST` | `/api/auth/set-password`           | Set password using token, leadId, and new password | Public     |
-| `POST` | `/api/auth/resend-invite/{leadId}` | Resend invite link to lead email                   | Admin Only |
-| `GET`  | `/api/auth/check-token`            | Validate password setup token                      | Public     |
-
----
+#### Staff Operations
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|--------------|
+| `PUT` | `/salon-user/staff/update-status` | Change status | `BEARER_JWT` | Body: `StaffStatusUpdateRequest` | 200, 403 |
+| `PUT` | `/salon-user/staff/update-details` | Update profile | `BEARER_JWT` | Body: `StaffDetailUpdateRequest` + params: `staffId` and `updatedBy` | 200, 400 |
+| `PUT` | `/salon-user/cancel-delete/{staffId}` | Cancel deletion | `BEARER_JWT` | `staffId` in path + param: `?deletedBy=ID` | 200, 404 |
+| `DELETE` | `/salon-user/{staffId}` | Delete staff | `BEARER_JWT` | `staffId` in path + param: `?deletedBy=ID` | 202, 404 |
 
 ### 🔐 Auth Info
 
@@ -97,29 +84,6 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
-### ✅ **1st June 2025**
-
-* Pushed new summary API: `/api/leads/summary`
-* Email service under development
-
----
-
-### ✅ **2nd June 2025**
-
-* Added **Spring Security** to `DELETE` and `PATCH` endpoints
-
-> For testing use:
-> **Username**: `admin`
-> **Password**: `eagle123`
-
----
-
-### ✅ **3rd June 2025**
-
-* Implemented email service to send password setup links
-* Updated API list to include auth-related endpoints
-
----
 
 ## 📦 Request DTO Formats
 
@@ -127,23 +91,19 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ```json
 {
-  "source": "Instagram Ads",
-  "preferredStartDate": "2025-06-10",
-  "salonName": "Blush & Glow",
-  "branchNumber": "3",
+  "source": "website",
+  "salonName": "Glamour Studio",
+  "branchNumber": "001",
   "city": "Mumbai",
   "avgMonthlyFootfall": 300,
-  "clientType": "Premium",
-
-  "contactName": "Ananya Sharma",
-  "contactEmail": "ananya@example.com",
+  "clientType": "walk-in",
+  "contactName": "Rohit Sharma",
+  "contactEmail": "rohit@example.com",
   "contactPhone": "9876543210",
   "contactDesignation": "Manager",
-
-  "businessType": "Private Limited",
-  "gstin": "27ABCDE1234F2Z5"
+  "businessType": "Franchise",
+  "gstin": "29ABCDE1234F2Z5"
 }
-
 ```
 
 ### `PasswordSetupRequest`
@@ -151,17 +111,86 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 ```json
 {
   "token": "abc123tokenvalue",
-  "newPassword": "newSecurePassword",
-  "leadId": "uuid-of-lead"
+  "password": "newSecurePassword",
+  "id": "uuid-of-lead"
 }
 ```
+
+### ManualStaffRegistrationRequest
+```json
+{
+  "name": "Ananya Sharma",
+  "email": "ananya@example.com",
+  "password": "SecurePass123",
+  "phone": "9876543210",
+  "role": "STAFF",
+  "profilePhoto": "https://example.com/images/ananya.jpg",
+  "isActive": "true",
+  "salonId": "c0a80123-4567-8901-2345-67890abcdef1",
+  "registeredBy": "c0a80123-4567-8901-2345-67890abcdef2"
+}
+
+```
+
 ---
+### StaffInviteRequest
+```json
+{
+  "name": "Ravi Kumar",
+  "email": "ravi.kumar@example.com",
+  "phone": "9123456789",
+  "role": "MANAGER",
+  "salonId": "c0a80123-4567-8901-2345-67890abcdef3",
+  "expiresAt": "2025-06-20T18:30:00"
+}
 
-### ✅ **4th June 2025**
-* Local Testing on Email Service Done
-* Mail will be sent only once when approved
-* Added Preferred Start Data along with Partner Lead
+```
+---
+### CompleteStaffRegistrationRequest
+```json
+{
+  "staffId": "c0a80123-4567-8901-2345-67890abcdef4",
+  "token": "a1b2c3d4e5f6g7h8",
+  "phone": "9988776655",
+  "password": "NewPass@456",
+  "role": "STYLIST",
+  "profilePhoto": "https://example.com/images/stylist.png"
+}
 
+```
+---
+### StaffDetailUpdateRequest
+```json
+{
+  "name": "Priya Mehta",
+  "email": "priya.mehta@example.com",
+  "phone": "9012345678",
+  "password": "UpdatedPass789",
+  "role": "RECEPTIONIST",
+  "profilePhoto": "https://example.com/images/priya.jpg"
+}
+
+
+```
+---
+### StaffStatusUpdateRequest
+```json
+{
+  "staffId": "c0a80123-4567-8901-2345-67890abcdef5",
+  "isActive": true,
+  "updatedBy": "c0a80123-4567-8901-2345-67890abcdef6"
+}
+
+```
+---
+### AuthRequest
+```json
+{
+  "email": "demo@demo.com",
+  "password": ""
+}
+
+```
 ---
 
 ## 🔍 Testing
