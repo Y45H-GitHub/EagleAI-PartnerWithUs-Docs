@@ -1,5 +1,3 @@
-
-
 # EagleVerse AI – Partner With Us (Backend)
 
 This repository contains the backend service for **EagleVerse AI's Partner With Us** module, built with Spring Boot. It enables salon managers and owners to submit partnership requests and helps the internal team manage and track these leads.
@@ -8,82 +6,94 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ## 🛠 Tech Stack
 
-* Java 17
-* Spring Boot
-* Spring Security
-* MySQL
-* Redis (for token storage)
-* JavaMailSender (for email communication)
-* Postman (for API testing)
+- Java 17  
+- Spring Boot  
+- Spring Security  
+- MySQL  
+- Redis (for token storage)  
+- JavaMailSender (for email communication)  
+- Postman (for API testing)
 
 ---
 
 ## 📌 Key Features
 
-* Submit detailed partnership requests
-* Store and retrieve leads via REST APIs
-* Send password setup links via email
-* Protect sensitive APIs using Basic Auth
-* Track request source (website, app, campaigns, etc.)
+- Submit detailed partnership requests  
+- Store and retrieve leads via REST APIs  
+- Send password setup links via email  
+- Protect sensitive APIs using Basic Auth  
+- Track request source (website, app, campaigns, etc.)
 
 ---
 
 ## 🔗 API Endpoints
 
 ### 📂 Lead Management (`/api/leads`)
-| Method | Endpoint | Description | Access | Request Format | Status Codes |
-|--------|----------|-------------|--------|----------------|--------------|
-| `GET` | `/leads` | Fetch all leads | `PUBLIC` | *None* | 200, 404 |
-| `GET` | `/leads/{id}` | Fetch specific lead | `PUBLIC` | `id` in path | 200, 404 |
-| `GET` | `/leads/summary` | Fetch summary view | `PUBLIC` | *None* | 200 |
-| `GET` | `/leads/get-id/{email}` | Get lead ID by email | `PUBLIC` | `email` in path | 200, 404 |
-| `POST` | `/leads` | Create new lead | `ROLE_ADMIN` | Body: `PartnerLeadRequest` | 201, 400 |
-| `PUT` | `/leads/{id}` | Update lead | `ROLE_ADMIN` | `id` in path + Body: `PartnerLeadUpdateRequest` | 200, 400 |
-| `PATCH` | `/leads/{id}/status` | Update status | `ROLE_ADMIN` | `id` in path + status as parameter | 200, 400 |
-| `DELETE` | `/leads/{id}` | Delete lead | `ROLE_ADMIN` | `id` in path | 204, 404 |
 
-### 🔐 Authentication (`/api/auth`)
-| Method | Endpoint | Description | Access | Request Format | Status Codes |
-|--------|----------|-------------|--------|----------------|--------------|
-| `POST` | `/auth/set-password` | Set password | `PUBLIC` | Body: `PasswordSetupRequest` | 200, 400 |
-| `POST` | `/auth/resend-invite/{leadId}` | Resend invite | `ROLE_ADMIN` | `leadId` in path | 200, 404 |
-| `GET` | `/auth/check-token` | Validate token | `PUBLIC` | in param `token` and `leadId` | 200, 410 |
-| `GET` | `/auth/request-reset-password` | To reequest to reset password | `PUBLIC` | Body `ResetPasswordRequest` | 200, 410 |
-| `POST` | `/auth/login` | Generate JWT | `PUBLIC` | Body: `AuthRequest` | 200, 401 |
-
-### 👥 Salon Staff Management (`/api`)
-#### Staff Listing & Details
-| Method | Endpoint | Description | Access | Request Format | Status Codes |
-|--------|----------|-------------|--------|----------------|--------------|
-| `GET` | `/salon-user/get-all` | Get all users | `PUBLIC` | *None* | 200 |
-| `GET` | `/salon-user/salon-staff` | Get salon staff | `BEARER_JWT` | param: `?salonId=ID&requestId=ID` | 200, 403 |
-| `GET` | `/salon-user/staff/{staffId}` | Get staff details | `BEARER_JWT` | `staffId` in path + param: `?requestId=ID` | 200, 404 |
-
-#### Staff Onboarding
-| Method | Endpoint | Description | Access | Request Format | Status Codes |
-|--------|----------|-------------|--------|----------------|--------------|
-| `POST` | `/salon-user/register` | Manual registration | `BEARER_JWT` | Body: `ManualStaffRegistrationRequest` | 201, 400 |
-| `POST` | `/salon-user/invite` | Send invite | `BEARER_JWT` | Body: `StaffInviteRequest` + param: `?invitedBy=ID` | 200, 400 |
-| `POST` | `/salon-user/complete-registration` | Complete registration | `PUBLIC` | Body: `CompleteStaffRegistrationRequest` | 200, 410 |
-
-#### Staff Operations
-| Method | Endpoint | Description | Access | Request Format | Status Codes |
-|--------|----------|-------------|--------|----------------|--------------|
-| `PUT` | `/salon-user/staff/update-status` | Change status | `BEARER_JWT` | Body: `StaffStatusUpdateRequest` | 200, 403 |
-| `PUT` | `/salon-user/staff/update-details` | Update profile | `BEARER_JWT` | Body: `StaffDetailUpdateRequest` + params: `staffId` and `updatedBy` | 200, 400 |
-| `PUT` | `/salon-user/cancel-delete/{staffId}` | Cancel deletion | `BEARER_JWT` | `staffId` in path + param: `?deletedBy=ID` | 200, 404 |
-| `DELETE` | `/salon-user/{staffId}` | Delete staff | `BEARER_JWT` | `staffId` in path + param: `?deletedBy=ID` | 202, 404 |
-
-### 🔐 Auth Info
-
-* **Admin Only** endpoints require `ROLE_ADMIN` and are protected by Spring Security.
-* For local testing, Basic Auth credentials are:
-
-  * **Username**: `admin`
-  * **Password**: `eagle123`
+| Method   | Endpoint                   | Description         | Access      | Request Format                                      | Output Format |
+|----------|----------------------------|---------------------|-------------|-----------------------------------------------------|--------------|
+| `GET`    | `/leads`                   | Fetch all leads     | `PUBLIC`    | *None* (dont use frequently, very long response)     | 200, 404     | 
+| `GET`    | `/leads/{id}`              | Fetch specific lead | `PUBLIC`    | `id` in path                                        | 200, 404     | 
+| `GET`    | `/leads/summary`           | Fetch summary view  | `PUBLIC`    | *None*                                              | 200          |
+| `GET`    | `/leads/get-id/{email}`    | Get lead ID by email| `PUBLIC`    | `email` in path                                     | 200, 404     |
+| `POST`   | `/leads`                   | Create new lead     | `ROLE_ADMIN`| Body: `PartnerLeadRequest`                          | 201, 400     |
+| `PUT`    | `/leads/{id}`              | Update lead         | `ROLE_ADMIN`| `id` in path + Body: `PartnerLeadUpdateRequest`     | 200, 400     |
+| `PATCH`  | `/leads/{id}/status`       | Update status       | `ROLE_ADMIN`| `id` in path + status as parameter                  | 200, 400     |
+| `DELETE` | `/leads/{id}`              | Delete lead         | `ROLE_ADMIN`| `id` in path                                        | 204, 404     |
 
 ---
 
+### 🔐 Authentication (`/api/auth`)
+
+| Method   | Endpoint                         | Description             | Access      | Request Format                   | Status Codes |
+|----------|----------------------------------|-------------------------|-------------|----------------------------------|--------------|
+| `POST`   | `/auth/set-password`             | Set password            | `PUBLIC`    | Body: `PasswordSetupRequest`     | 200, 400     |
+| `POST`   | `/auth/resend-invite/{leadId}`   | Resend invite           | `ROLE_ADMIN`| `leadId` in path                 | 200, 404     |
+| `GET`    | `/auth/check-token`              | Validate token          | `PUBLIC`    | Param: `token`, `leadId`         | 200, 410     |
+| `GET`    | `/auth/request-reset-password`   | Request password reset  | `PUBLIC`    | Body: `ResetPasswordRequest`     | 200, 410     |
+| `POST`   | `/auth/login`                    | Generate JWT            | `PUBLIC`    | Body: `AuthRequest`              | 200, 401     |
+
+---
+
+### 👥 Salon Staff Management (`/api`)
+
+#### Staff Listing & Details
+
+| Method   | Endpoint                        | Description       | Access        | Request Format                           | Status Codes |
+|----------|---------------------------------|-------------------|---------------|------------------------------------------|--------------|
+| `GET`    | `/salon-user/get-all`           | Get all users     | `PUBLIC`      | *None* (dont use frequently, very long response)     | 200          |
+| `GET`    | `/salon-user/salon-staff`       | Get salon staff   | `BEARER_JWT`  | Param: `?salonId=ID&requestId=ID`        | 200, 403     |
+| `GET`    | `/salon-user/staff/{staffId}`   | Get staff details | `BEARER_JWT`  | `staffId` in path + Param: `?requestId=ID`| 200, 404     |
+| `GET`    | `/salon-user/id-email`   | Get id and email of all users  | `PUBLIC`  | *None*| 200, 404     |
+
+#### Staff Onboarding
+
+| Method   | Endpoint                             | Description             | Access        | Request Format                                         | Status Codes |
+|----------|--------------------------------------|-------------------------|---------------|--------------------------------------------------------|--------------|
+| `POST`   | `/salon-user/register`               | Manual registration     | `BEARER_JWT`  | Body: `ManualStaffRegistrationRequest`                 | 201, 400     |
+| `POST`   | `/salon-user/invite`                 | Send invite             | `BEARER_JWT`  | Body: `StaffInviteRequest` + Param: `?invitedBy=ID`    | 200, 400     |
+| `POST`   | `/salon-user/complete-registration`  | Complete registration   | `PUBLIC`      | Body: `CompleteStaffRegistrationRequest`               | 200, 410     |
+
+#### Staff Operations
+
+| Method   | Endpoint                                  | Description      | Access        | Request Format                                                   | Status Codes |
+|----------|-------------------------------------------|------------------|---------------|------------------------------------------------------------------|--------------|
+| `PUT`    | `/salon-user/staff/update-status`         | Change status    | `BEARER_JWT`  | Body: `StaffStatusUpdateRequest`                                 | 200, 403     |
+| `PUT`    | `/salon-user/staff/update-details`        | Update profile   | `BEARER_JWT`  | Body: `StaffDetailUpdateRequest` + Param: `staffId`, `updatedBy` | 200, 400     |
+| `PUT`    | `/salon-user/cancel-delete/{staffId}`     | Cancel deletion  | `BEARER_JWT`  | `staffId` in path + Param: `?deletedBy=ID`                       | 200, 404     |
+| `DELETE` | `/salon-user/{staffId}`                   | Delete staff     | `BEARER_JWT`  | `staffId` in path + Param: `?deletedBy=ID`                       | 202, 404     |
+
+---
+
+### 🔐 Auth Info
+
+- **Admin Only** endpoints require `ROLE_ADMIN` and are protected by Spring Security.
+- For local testing, Basic Auth credentials are:
+
+  - **Username**: `admin`  
+  - **Password**: `eagle123`
+
+---
 
 ## 📦 Request DTO Formats
 
@@ -106,8 +116,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 }
 ```
 
-### `PasswordSetupRequest`
-
+### **PasswordSetupRequest**
 ```json
 {
   "token": "abc123tokenvalue",
@@ -131,8 +140,6 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 }
 
 ```
-
----
 ### StaffInviteRequest
 ```json
 {
@@ -143,9 +150,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
   "salonId": "c0a80123-4567-8901-2345-67890abcdef3",
   "expiresAt": "2025-06-20T18:30:00"
 }
-
 ```
----
 ### CompleteStaffRegistrationRequest
 ```json
 {
@@ -158,7 +163,6 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 }
 
 ```
----
 ### StaffDetailUpdateRequest
 ```json
 {
@@ -169,10 +173,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
   "role": "RECEPTIONIST",
   "profilePhoto": "https://example.com/images/priya.jpg"
 }
-
-
 ```
----
 ### StaffStatusUpdateRequest
 ```json
 {
@@ -180,9 +181,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
   "isActive": true,
   "updatedBy": "c0a80123-4567-8901-2345-67890abcdef6"
 }
-
 ```
----
 ### AuthRequest
 ```json
 {
@@ -191,11 +190,146 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 }
 
 ```
----
-
-## 🔍 Testing
-
-Postman was used to validate all APIs. Public access is currently allowed for testing; auth will be tightened after frontend integration.
 
 ---
 
+## Output Format 
+### Lead Management (```/api/leads```)
+#### GET
+```json
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdef1",
+  "preferredStartDate": "2025-07-01",
+  "status": "PENDING",
+  "createdAt": "2025-06-22T18:45:00",
+
+  "salonName": "Glamour Studio",
+  "branchNumber": "001",
+  "city": "Mumbai",
+  "avgMonthlyFootfall": 300,
+  "clientType": "walk-in",
+
+  "contactName": "Rohit Sharma",
+  "contactEmail": "rohit.sharma@example.com",
+  "contactPhone": "9876543210",
+  "contactDesignation": "Manager",
+
+  "businessType": "Franchise",
+  "gstin": "29ABCDE1234F2Z5"
+}
+```
+#### GET /leads/{id}
+``` 
+same as GET /api/leads
+```
+#### GET /leads/summary
+```json
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdef2",
+  "status": "PENDING"
+}
+```
+####  GET /leads/get-id/{email}
+```json 
+{
+ "id":"c0a80123-4567-8901-2345-67890abcdef2"
+}
+```
+####  GET /leads/get-id/{email}
+```json 
+{
+ "id":"c0a80123-4567-8901-2345-67890abcdef2"
+}
+```
+####  POST  /leads
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdeff",
+  "status": "APPROVED",
+  "createdAt": "2025-06-22T15:30:00",
+  "contactEmail": "neha.kapoor@example.com",
+  "contactDesignation": "Franchise Owner"
+}
+```
+####  PUT  /leads/{id}
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdeff",
+  "status": "APPROVED",
+  "createdAt": "2025-06-22T15:30:00",
+  "contactEmail": "neha.kapoor@example.com",
+  "contactDesignation": "Franchise Owner"
+}
+```
+
+####  PATCH   /leads/{id}/status?status=<status>
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdeff",
+  "status": "APPROVED",
+  "createdAt": "2025-06-22T15:30:00",
+  "contactEmail": "neha.kapoor@example.com",
+  "contactDesignation": "Franchise Owner"
+}
+```
+### Authentication 
+####  POST   /api/auth/login
+```json 
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+### Salon Staff Management (```/api/salon-user```)
+####  GET /get-all
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdef9",
+  "name": "Ananya Sharma",
+  "email": "ananya.sharma@example.com",
+  "phone": "9876543210",
+  "role": "STYLIST",
+  "salonId": "c0a80123-4567-8901-2345-67890abcdea1",
+  "salonName": "Glamour Studio - Andheri",
+  "active": true,
+  "deleted": false
+}
+
+```
+####  GET /id-email
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcde77",
+  "email": "manager@glamourstudio.com"
+}
+```
+####  GET /salon-staff
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdef9",
+  "name": "Ananya Sharma",
+  "email": "ananya.sharma@example.com",
+  "phone": "9876543210",
+  "role": "STYLIST",
+  "salonId": "c0a80123-4567-8901-2345-67890abcdea1",
+  "salonName": "Glamour Studio - Andheri",
+  "active": true
+}
+```
+####  GET /staff/{staffId}
+``` 
+Same as GET /get-all
+```
+
+####  POST  /register
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcdef9",
+  "name": "Ananya Sharma",
+  "email": "ananya.sharma@example.com",
+  "phone": "9876543210",
+  "role": "STYLIST",
+  "salonId": "c0a80123-4567-8901-2345-67890abcdea1",
+  "salonName": "Glamour Studio - Andheri",
+  "active": true
+}
+```
