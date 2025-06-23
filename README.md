@@ -28,7 +28,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ## 🔗 API Endpoints
 
-### 📂 Lead Management (`/api/leads`)
+### 📂 Lead Management (`/api`)
 
 | Method   | Endpoint                   | Description         | Access      | Request Format                                      | Output Format |
 |----------|----------------------------|---------------------|-------------|-----------------------------------------------------|--------------|
@@ -43,7 +43,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
-### 🔐 Authentication (`/api/auth`)
+### 🔐 Authentication (`/api`)
 
 | Method   | Endpoint                         | Description             | Access      | Request Format                   | Status Codes |
 |----------|----------------------------------|-------------------------|-------------|----------------------------------|--------------|
@@ -65,6 +65,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 | `GET`    | `/salon-user/salon-staff`       | Get salon staff   | `BEARER_JWT`  | Param: `?salonId=ID&requestId=ID`        | 200, 403     |
 | `GET`    | `/salon-user/staff/{staffId}`   | Get staff details | `BEARER_JWT`  | `staffId` in path + Param: `?requestId=ID`| 200, 404     |
 | `GET`    | `/salon-user/id-email`   | Get id and email of all users  | `PUBLIC`  | *None*| 200, 404     |
+| `GET`    | `/salon-user/get-id`   | Get id  of  via email  | `PUBLIC`  | ```?email=<email>```| 200, 404     |
 
 #### Staff Onboarding
 
@@ -266,10 +267,7 @@ same as GET /api/leads
 ```json 
 {
   "id": "c0a80123-4567-8901-2345-67890abcdeff",
-  "status": "APPROVED",
-  "createdAt": "2025-06-22T15:30:00",
-  "contactEmail": "neha.kapoor@example.com",
-  "contactDesignation": "Franchise Owner"
+  "status": "APPROVED"
 }
 ```
 ### Authentication 
@@ -296,6 +294,13 @@ same as GET /api/leads
 
 ```
 ####  GET /id-email
+```json 
+{
+  "id": "c0a80123-4567-8901-2345-67890abcde77",
+  "email": "manager@glamourstudio.com"
+}
+```
+####  GET /get-id
 ```json 
 {
   "id": "c0a80123-4567-8901-2345-67890abcde77",
