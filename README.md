@@ -51,7 +51,8 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 | `POST`   | `/auth/resend-invite/{leadId}`   | Resend invite           | `ROLE_ADMIN`| `leadId` in path                 | 200, 404     |
 | `GET`    | `/auth/check-token`              | Validate token          | `PUBLIC`    | Param: `token`, `leadId`         | 200, 410     |
 | `GET`    | `/auth/request-reset-password`   | Request password reset  | `PUBLIC`    | Body: `ResetPasswordRequest`     | 200, 410     |
-| `POST`   | `/auth/login`                    | Generate JWT            | `PUBLIC`    | Body: `AuthRequest`              | 200, 401     |
+| `POST`   | `/auth/login`                    | -see image below-            | `PUBLIC`    |               | 200, 401     |
+| `POST`   | `/auth/refresh`                  | -see image below-            | `PUBLIC`    | | 200, 401     |
 
 ---
 
@@ -86,6 +87,36 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
+### 👥 Client Management (`/api/client`)
+
+#### Client CRUD & Info
+
+| Method   | Endpoint                               | Description                        | Access       | Request Format                               | Status Codes  |
+| -------- | -------------------------------------- | ---------------------------------- | ------------ | -------------------------------------------- | ------------- |
+| `POST`   | `/api/client`                          | Create a new client                | `BEARER_JWT` | JSON body: `ClientRequest`                   | 200, 400, 403 |
+| `PATCH`  | `/api/client/{clientId}`               | Update an existing client          | `BEARER_JWT` | Path: `clientId`, JSON body: `ClientRequest` | 200, 400, 403 |
+| `DELETE` | `/api/client/{clientId}`               | Soft-delete a client               | `BEARER_JWT` | Path: `clientId`                             | 204, 403, 404 |
+| `PATCH`  | `/api/client/{clientId}/cancel-delete` | Cancel soft-delete of a client     | `BEARER_JWT` | Path: `clientId`                             | 200, 403, 404 |
+| `GET`    | `/api/client/{clientId}`               | Get full details of a client by ID | `BEARER_JWT` | Path: `clientId`                             | 200, 403, 404 |
+
+#### Client Listing & Assignment
+
+| Method | Endpoint                         | Description                                  | Access       | Request Format            | Status Codes  |
+| ------ | -------------------------------- | -------------------------------------------- | ------------ | ------------------------- | ------------- |
+| `GET`  | `/api/client/all`                | Get all clients of current user's salon      | `BEARER_JWT` | *None*                    | 200, 403      |
+| `GET`  | `/api/client/assigned`           | Get clients assigned to current staff        | `BEARER_JWT` | *None*                    | 200, 403      |
+| `GET`  | `/api/client/assigned/{staffId}` | Get clients assigned to another staff member | `BEARER_JWT` | Path: `staffId`           | 200, 403, 404 |
+| `GET`  | `/api/client`                    | Get paginated list of salon clients          | `BEARER_JWT` | Params: `?page=0&size=10` | 200, 403      |
+
+#### Client Staff Reassignment
+
+| Method  | Endpoint                                     | Description                      | Access       | Request Format                 | Status Codes  |
+| ------- | -------------------------------------------- | -------------------------------- | ------------ | ------------------------------ | ------------- |
+| `PATCH` | `/api/client/{clientId}/assign/{newStaffId}` | Reassign client to another staff | `BEARER_JWT` | Path: `clientId`, `newStaffId` | 200, 403, 404 |
+
+---
+
+
 ### 🔐 Auth Info
 
 - **Admin Only** endpoints require `ROLE_ADMIN` and are protected by Spring Security.
@@ -93,6 +124,8 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
   - **Username**: `admin`  
   - **Password**: `eagle123`
+### JWT TOKEN FLOW : 
+![image](https://github.com/user-attachments/assets/fcbbe8fa-dcef-4d67-9d74-17fe8956cd7b)
 
 ---
 
@@ -188,6 +221,21 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 {
   "email": "demo@demo.com",
   "password": ""
+}
+
+```
+####  POST  /api/client ClientRequest
+```json 
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "9876543210",
+  "dateOfBirth": "1995-08-15",
+  "gender": "MALE",
+  "notes": "Client prefers morning appointments.",
+  "photoUrl": "https://example.com/photos/john.jpg",
+  "assignedStaffId": "d3fcaec2-4f5a-43f2-8c97-1e3e9c672ed2"
 }
 
 ```
@@ -338,3 +386,5 @@ Same as GET /get-all
   "active": true
 }
 ```
+
+
