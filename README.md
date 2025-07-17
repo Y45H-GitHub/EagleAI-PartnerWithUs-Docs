@@ -26,94 +26,193 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
-## 🔗 API Endpoints
+# EagleVerse PartnerWithUs API Documentation
 
-### 📂 Lead Management (`/api`)
+This document provides a comprehensive guide to the PartnerWithUs API endpoints for frontend developers. The API is organized into several modules that handle different aspects of the application.
 
-| Method   | Endpoint                   | Description         | Access      | Request Format                                      | Output Format |
-|----------|----------------------------|---------------------|-------------|-----------------------------------------------------|--------------|
-| `GET`    | `/leads`                   | Fetch all leads     | `PUBLIC`    | *None* (dont use frequently, very long response)     | 200, 404     | 
-| `GET`    | `/leads/{id}`              | Fetch specific lead | `PUBLIC`    | `id` in path                                        | 200, 404     | 
-| `GET`    | `/leads/summary`           | Fetch summary view  | `PUBLIC`    | *None*                                              | 200          |
-| `GET`    | `/leads/get-id/{email}`    | Get lead ID by email| `PUBLIC`    | `email` in path                                     | 200, 404     |
-| `POST`   | `/leads`                   | Create new lead     | `ROLE_ADMIN`| Body: `PartnerLeadRequest`                          | 201, 400     |
-| `PUT`    | `/leads/{id}`              | Update lead         | `ROLE_ADMIN`| `id` in path + Body: `PartnerLeadUpdateRequest`     | 200, 400     |
-| `PATCH`  | `/leads/{id}/status`       | Update status       | `ROLE_ADMIN`| `id` in path + status as parameter                  | 200, 400     |
-| `DELETE` | `/leads/{id}`              | Delete lead         | `ROLE_ADMIN`| `id` in path                                        | 204, 404     |
+## Table of Contents
 
----
-
-### 🔐 Authentication (`/api`)
-
-| Method   | Endpoint                         | Description             | Access      | Request Format                   | Status Codes |
-|----------|----------------------------------|-------------------------|-------------|----------------------------------|--------------|
-| `POST`   | `/auth/set-password`             | Set password            | `PUBLIC`    | Body: `PasswordSetupRequest`     | 200, 400     |
-| `POST`   | `/auth/resend-invite/{leadId}`   | Resend invite           | `ROLE_ADMIN`| `leadId` in path                 | 200, 404     |
-| `GET`    | `/auth/check-token`              | Validate token          | `PUBLIC`    | Param: `token`, `leadId`         | 200, 410     |
-| `GET`    | `/auth/request-reset-password`   | Request password reset  | `PUBLIC`    | Body: `ResetPasswordRequest`     | 200, 410     |
-| `POST`   | `/auth/login`                    | -see image below-            | `PUBLIC`    |               | 200, 401     |
-| `POST`   | `/auth/refresh`                  | -see image below-            | `PUBLIC`    | | 200, 401     |
+1. [Authentication](#authentication)
+2. [Partner Lead Management](#partner-lead-management)
+3. [Salon User Management](#salon-user-management)
+4. [Client Management](#client-management)
+5. [Scan Management](#scan-management)
+6. [Anonymous Scan Flow](#anonymous-scan-flow)
+7. [OTP Verification](#otp-verification)
 
 ---
 
-### 👥 Salon Staff Management (`/api`)
+## Authentication
 
-#### Staff Listing & Details
+### Login and Token Management
 
-| Method   | Endpoint                        | Description       | Access        | Request Format                           | Status Codes |
-|----------|---------------------------------|-------------------|---------------|------------------------------------------|--------------|
-| `GET`    | `/salon-user/get-all`           | Get all users     | `PUBLIC`      | *None* (dont use frequently, very long response)     | 200          |
-| `GET`    | `/salon-user/salon-staff`       | Get salon staff   | `BEARER_JWT`  | Param: `?salonId=ID&requestId=ID`        | 200, 403     |
-| `GET`    | `/salon-user/staff/{staffId}`   | Get staff details | `BEARER_JWT`  | `staffId` in path + Param: `?requestId=ID`| 200, 404     |
-| `GET`    | `/salon-user/id-email`   | Get id and email of all users  | `PUBLIC`  | *None*| 200, 404     |
-| `GET`    | `/salon-user/get-id`   | Get id  of  via email  | `PUBLIC`  | ```?email=<email>```| 200, 404     |
-
-#### Staff Onboarding
-
-| Method   | Endpoint                             | Description             | Access        | Request Format                                         | Status Codes |
-|----------|--------------------------------------|-------------------------|---------------|--------------------------------------------------------|--------------|
-| `POST`   | `/salon-user/register`               | Manual registration     | `BEARER_JWT`  | Body: `ManualStaffRegistrationRequest`                 | 201, 400     |
-| `POST`   | `/salon-user/invite`                 | Send invite             | `BEARER_JWT`  | Body: `StaffInviteRequest` + Param: `?invitedBy=ID`    | 200, 400     |
-| `POST`   | `/salon-user/complete-registration`  | Complete registration   | `PUBLIC`      | Body: `CompleteStaffRegistrationRequest`               | 200, 410     |
-
-#### Staff Operations
-
-| Method   | Endpoint                                  | Description      | Access        | Request Format                                                   | Status Codes |
-|----------|-------------------------------------------|------------------|---------------|------------------------------------------------------------------|--------------|
-| `PUT`    | `/salon-user/staff/update-status`         | Change status    | `BEARER_JWT`  | Body: `StaffStatusUpdateRequest`                                 | 200, 403     |
-| `PUT`    | `/salon-user/staff/update-details`        | Update profile   | `BEARER_JWT`  | Body: `StaffDetailUpdateRequest` + Param: `staffId`, `updatedBy` | 200, 400     |
-| `PUT`    | `/salon-user/cancel-delete/{staffId}`     | Cancel deletion  | `BEARER_JWT`  | `staffId` in path + Param: `?deletedBy=ID`                       | 200, 404     |
-| `DELETE` | `/salon-user/{staffId}`                   | Delete staff     | `BEARER_JWT`  | `staffId` in path + Param: `?deletedBy=ID`                       | 202, 404     |
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| POST | `/api/auth/login` | Login with email and password | Public | ```{ "email": "user@example.com", "password": "password123" }``` |
+| POST | `/api/auth/refresh` | Refresh access token | JWT | ```{ "refreshToken": "token" }``` (for mobile) or Cookie (for web) |
+| POST | `/api/auth/otp-login` | Login with OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` |
+| POST | `/api/auth/set-password` | Set password using token | Public | ```{ "token": "token", "password": "newPassword", "id": "uuid" }``` |
+| POST | `/api/auth/request-reset-password` | Request password reset | Public | ```{ "email": "user@example.com" }``` |
+| GET | `/api/auth/check-token` | Validate token | Public | Query params: `token`, `leadId` |
+| POST | `/api/auth/resend-invite/{leadId}` | Resend invitation | Admin JWT | Path variable: `leadId` |
 
 ---
 
-### 👥 Client Management (`/api/client`)
+## Partner Lead Management
 
-#### Client CRUD & Info
+### Lead Operations
 
-| Method   | Endpoint                               | Description                        | Access       | Request Format                               | Status Codes  |
-| -------- | -------------------------------------- | ---------------------------------- | ------------ | -------------------------------------------- | ------------- |
-| `POST`   | `/api/client`                          | Create a new client                | `BEARER_JWT` | JSON body: `ClientRequest`                   | 200, 400, 403 |
-| `PATCH`  | `/api/client/{clientId}`               | Update an existing client          | `BEARER_JWT` | Path: `clientId`, JSON body: `ClientRequest` | 200, 400, 403 |
-| `DELETE` | `/api/client/{clientId}`               | Soft-delete a client               | `BEARER_JWT` | Path: `clientId`                             | 204, 403, 404 |
-| `PATCH`  | `/api/client/{clientId}/cancel-delete` | Cancel soft-delete of a client     | `BEARER_JWT` | Path: `clientId`                             | 200, 403, 404 |
-| `GET`    | `/api/client/{clientId}`               | Get full details of a client by ID | `BEARER_JWT` | Path: `clientId`                             | 200, 403, 404 |
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| GET | `/api/leads/{id}` | Get lead by ID | Public | Path variable: `id` |
+| GET | `/api/leads/summary` | Get summary of all leads | Public | None |
+| GET | `/api/leads/get-id/{email}` | Get lead ID by email | Public | Path variable: `email` |
+| GET | `/api/leads/metrics` | Get dashboard metrics | Public | None |
+| POST | `/api/leads` | Create new lead | Public | ```{ "source": "website", "preferredStartDate": "2025-12-31", "salonName": "Beauty Salon", "branchNumber": "B001", "city": "Mumbai", "avgMonthlyFootfall": 500, "clientType": "Premium", "contactName": "John Doe", "contactEmail": "john@example.com", "contactPhone": "1234567890", "contactDesignation": "Manager", "businessType": "Salon", "gstin": "22AAAAA0000A1Z5" }``` |
+| PUT | `/api/leads/{id}` | Update lead | Admin JWT | Path variable: `id`, Body: Lead update data |
+| PATCH | `/api/leads/{id}/status` | Update lead status | Admin JWT | Path variable: `id`, Query param: `status` (NEW, IN_PROGRESS, CONTACTED, REJECTED, APPROVED) |
+| DELETE | `/api/leads/{id}` | Delete lead | Admin JWT | Path variable: `id` |
 
-#### Client Listing & Assignment
+---
 
-| Method | Endpoint                         | Description                                  | Access       | Request Format            | Status Codes  |
-| ------ | -------------------------------- | -------------------------------------------- | ------------ | ------------------------- | ------------- |
-| `GET`  | `/api/client/all`                | Get all clients of current user's salon      | `BEARER_JWT` | *None*                    | 200, 403      |
-| `GET`  | `/api/client/assigned`           | Get clients assigned to current staff        | `BEARER_JWT` | *None*                    | 200, 403      |
-| `GET`  | `/api/client/assigned/{staffId}` | Get clients assigned to another staff member | `BEARER_JWT` | Path: `staffId`           | 200, 403, 404 |
-| `GET`  | `/api/client`                    | Get paginated list of salon clients          | `BEARER_JWT` | Params: `?page=0&size=10` | 200, 403      |
+## Salon User Management
 
-#### Client Staff Reassignment
+### Staff Operations
 
-| Method  | Endpoint                                     | Description                      | Access       | Request Format                 | Status Codes  |
-| ------- | -------------------------------------------- | -------------------------------- | ------------ | ------------------------------ | ------------- |
-| `PATCH` | `/api/client/{clientId}/assign/{newStaffId}` | Reassign client to another staff | `BEARER_JWT` | Path: `clientId`, `newStaffId` | 200, 403, 404 |
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| GET | `/api/salon-user/id-email` | Get all salon IDs and emails | JWT | None |
+| GET | `/api/salon-user/get-id` | Get user ID by email | JWT | Query param: `email` |
+| GET | `/api/salon-user/get-all` | Get all salon users | JWT | None |
+| GET | `/api/salon-user/salon-staff` | Get all staff for a salon | JWT | Query params: `salonId`, `requestedBy` |
+| GET | `/api/salon-user/staff/{staffId}` | Get staff by ID | JWT | Path variable: `staffId`, Query param: `requestedBy` |
+| PUT | `/api/salon-user/staff/update-status` | Update staff status | JWT | ```{ "staffId": "uuid", "active": true, "updatedBy": "uuid" }``` |
+| PUT | `/api/salon-user/staff/update-details` | Update staff details | JWT | Query params: `staffId`, `updatedBy`, Body: Staff details |
+| PUT | `/api/salon-user/cancel-delete/{staffId}` | Cancel staff deletion | JWT | Path variable: `staffId`, Query param: `deletedBy` |
+| DELETE | `/api/salon-user/{staffId}` | Mark staff for deletion | JWT | Path variable: `staffId`, Query param: `deletedBy` |
+| DELETE | `/api/salon-user/delete/{staffId}` | Permanently delete staff | JWT | Path variable: `staffId`, Query param: `deletedBy` |
+| POST | `/api/salon-user/register` | Register staff manually | JWT | ```{ "name": "Staff Name", "email": "staff@example.com", "phone": "1234567890", "role": "STYLIST", "salonId": "uuid", "registeredBy": "uuid" }``` |
+| POST | `/api/salon-user/invite` | Invite staff | JWT | ```{ "email": "staff@example.com", "role": "STYLIST", "salonId": "uuid" }```, Query param: `invitedBy` |
+| POST | `/api/salon-user/complete-staff-registration` | Complete staff registration | Public | ```{ "token": "token", "staffId": "uuid", "password": "password", "name": "Staff Name", "phone": "1234567890" }``` |
 
+---
+
+## Client Management
+
+### Client Operations
+
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| POST | `/api/client` | Create client | JWT | ```{ "firstName": "John", "lastName": "Doe", "email": "client@example.com", "phone": "1234567890", "dateOfBirth": "1990-01-01", "gender": "MALE", "notes": "Client notes" }``` |
+| PATCH | `/api/client/{clientId}` | Update client | JWT | Path variable: `clientId`, Body: Client update data |
+| DELETE | `/api/client/{clientId}` | Delete client (soft) | JWT | Path variable: `clientId` |
+| PATCH | `/api/client/{clientId}/cancel-delete` | Cancel client deletion | JWT | Path variable: `clientId` |
+| GET | `/api/client/{clientId}` | Get client by ID | JWT | Path variable: `clientId` |
+| GET | `/api/client/all` | Get all clients of salon | JWT | None |
+| GET | `/api/client/assigned` | Get clients assigned to staff | JWT | None |
+| GET | `/api/client/assigned/{staffId}` | Get clients assigned to specific staff | JWT | Path variable: `staffId` |
+| GET | `/api/client` | Get paginated clients | JWT | Query params: `page` (default: 0), `size` (default: 10) |
+| PATCH | `/api/client/{clientId}/assign/{newStaffId}` | Reassign client to new staff | JWT | Path variables: `clientId`, `newStaffId` |
+
+---
+
+## Scan Management
+
+### Scan Operations
+
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| POST | `/api/scans/create-session` | Create scan session | JWT | Query params: `clientId`, `salonUserId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment", "notes": "Scan notes" }``` |
+| POST | `/api/scans/complete` | Complete scan (ML callback) | System | ```{ "scanSessionId": "uuid", "status": "success/failed", "error": "Error message if failed", ... }``` |
+| GET | `/api/scans/{scanSessionId}` | Get scan details | JWT | Path variable: `scanSessionId` |
+| GET | `/api/scans/{clientId}/all` | Get all scans for client | JWT | Path variable: `clientId` |
+| GET | `/api/scans/{clientId}/dashboard-scans` | Get paginated scans for client | JWT | Path variable: `clientId`, Pageable params |
+| GET | `/api/scans/{scanSessionId}/status` | Check scan status | JWT | Path variable: `scanSessionId` |
+| DELETE | `/api/scans/scans/{scanSessionId}` | Delete scan | JWT | Path variable: `scanSessionId` |
+
+---
+
+## Anonymous Scan Flow
+
+### Anonymous Scan Operations
+
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| POST | `/api/anonscans/{anonId}` | Create anonymous scan | Public | Path variable: `anonId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment" }``` |
+| GET | `/api/anonscans/{anonId}/usage` | Check usage limits | Public | Path variable: `anonId` |
+| GET | `/api/anonscans/result/{sessionId}` | Get scan result | Public | Path variable: `sessionId` |
+| POST | `/api/anonscans/{anonId}/link` | Link anonymous scans to client | Public | Path variable: `anonId`, Query param: `clientId` |
+| POST | `/api/anonscans/analysis` | Receive ML analysis result | System | Analysis result data |
+
+---
+
+## OTP Verification
+
+### OTP Operations
+
+| Method | Endpoint | Description | Access | Request Format |
+|--------|----------|-------------|--------|----------------|
+| POST | `/api/otp/send` | Send OTP | Public | ```{ "phone": "1234567890" }``` |
+| POST | `/api/otp/verify` | Verify OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` |
+
+---
+
+## Response Formats
+
+### Common Response Structures
+
+1. **Authentication Responses**:
+   - Web: `{ "accessToken": "jwt_token" }`
+   - Mobile: `{ "accessToken": "jwt_token", "refreshToken": "refresh_token", "id": "user_id" }`
+
+2. **Partner Lead Responses**:
+   - `{ "id": "uuid", "status": "NEW", "createdAt": "2023-01-01T12:00:00", "contactEmail": "email@example.com", "contactDesignation": "Manager" }`
+
+3. **Client Responses**:
+   - Summary: `{ "id": "uuid", "firstName": "John", "lastName": "Doe", "phone": "1234567890", ... }`
+   - Details: `{ "id": "uuid", "firstName": "John", "lastName": "Doe", "phone": "1234567890", "email": "client@example.com", "dateOfBirth": "1990-01-01", "gender": "MALE", "notes": "Client notes", "scanSessions": [...] }`
+
+4. **Scan Responses**:
+   - Session: `{ "id": "uuid", "imageUrl": "https://example.com/image.jpg", "scannedAt": "2023-01-01T12:00:00", "sessionPurpose": "Initial Assessment", "status": "PENDING" }`
+   - Details: `{ "id": "uuid", "imageUrl": "https://example.com/image.jpg", "scannedAt": "2023-01-01T12:00:00", "sessionPurpose": "Initial Assessment", "status": "COMPLETED", "analysis": { ... }, "regionMetrics": [...], "visualOutputs": [...] }`
+
+5. **Error Responses**:
+   - `{ "status": 400, "message": "Error message", "timestamp": "2023-01-01T12:00:00" }`
+
+## Authentication Headers
+
+- **JWT Authentication**: Include the JWT token in the Authorization header:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+- **Client Type Header**: For mobile clients, include the client type header:
+  ```
+  X-Client-Type: mobile
+  ```
+
+## Pagination
+
+For endpoints that support pagination, the following query parameters are available:
+- `page`: Page number (zero-based, default: 0)
+- `size`: Page size (default: 10)
+
+Paginated responses include:
+```json
+{
+  "content": [...],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {...}
+  },
+  "totalElements": 100,
+  "totalPages": 10,
+  "last": false,
+  "first": true,
+  "empty": false
+}
+```
 ---
 
 
