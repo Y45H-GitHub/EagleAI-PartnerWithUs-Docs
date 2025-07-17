@@ -26,7 +26,7 @@ This repository contains the backend service for **EagleVerse AI's Partner With 
 
 ---
 
-# EagleVerse PartnerWithUs API Documentation
+# EagleVerse  API Documentation
 
 This document provides a comprehensive guide to the PartnerWithUs API endpoints for frontend developers. The API is organized into several modules that handle different aspects of the application.
 
