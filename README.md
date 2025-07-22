@@ -39,6 +39,8 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 5. [Scan Management](#scan-management)
 6. [Anonymous Scan Flow](#anonymous-scan-flow)
 7. [OTP Verification](#otp-verification)
+8. [Status Codes](#status-codes)
+9. [Error Handling](#error-handling)
 
 ---
 
@@ -46,15 +48,15 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Login and Token Management
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| POST | `/api/auth/login` | Login with email and password | Public | ```{ "email": "user@example.com", "password": "password123" }``` |
-| POST | `/api/auth/refresh` | Refresh access token | JWT | ```{ "refreshToken": "token" }``` (for mobile) or Cookie (for web) |
-| POST | `/api/auth/otp-login` | Login with OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` |
-| POST | `/api/auth/set-password` | Set password using token | Public | ```{ "token": "token", "password": "newPassword", "id": "uuid" }``` |
-| POST | `/api/auth/request-reset-password` | Request password reset | Public | ```{ "email": "user@example.com" }``` |
-| GET | `/api/auth/check-token` | Validate token | Public | Query params: `token`, `leadId` |
-| POST | `/api/auth/resend-invite/{leadId}` | Resend invitation | Admin JWT | Path variable: `leadId` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| POST | `/api/auth/login` | Login with email and password | Public | ```{ "email": "user@example.com", "password": "password123" }``` | 200 OK, 401 Unauthorized |
+| POST | `/api/auth/refresh` | Refresh access token | JWT | ```{ "refreshToken": "token" }``` (for mobile) or Cookie (for web) | 200 OK, 400 Bad Request, 401 Unauthorized |
+| POST | `/api/auth/otp-login` | Login with OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` | 200 OK, 401 Unauthorized |
+| POST | `/api/auth/set-password` | Set password using token | Public | ```{ "token": "token", "password": "newPassword", "id": "uuid" }``` | 200 OK, 400 Bad Request |
+| POST | `/api/auth/request-reset-password` | Request password reset | Public | ```{ "email": "user@example.com" }``` | 200 OK |
+| GET | `/api/auth/check-token` | Validate token | Public | Query params: `token`, `leadId` | 200 OK, 401 Unauthorized |
+| POST | `/api/auth/resend-invite/{leadId}` | Resend invitation | Admin JWT | Path variable: `leadId` | 200 OK, 403 Forbidden, 404 Not Found |
 
 ---
 
@@ -62,16 +64,16 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Lead Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| GET | `/api/leads/{id}` | Get lead by ID | Public | Path variable: `id` |
-| GET | `/api/leads/summary` | Get summary of all leads | Public | None |
-| GET | `/api/leads/get-id/{email}` | Get lead ID by email | Public | Path variable: `email` |
-| GET | `/api/leads/metrics` | Get dashboard metrics | Public | None |
-| POST | `/api/leads` | Create new lead | Public | ```{ "source": "website", "preferredStartDate": "2025-12-31", "salonName": "Beauty Salon", "branchNumber": "B001", "city": "Mumbai", "avgMonthlyFootfall": 500, "clientType": "Premium", "contactName": "John Doe", "contactEmail": "john@example.com", "contactPhone": "1234567890", "contactDesignation": "Manager", "businessType": "Salon", "gstin": "22AAAAA0000A1Z5" }``` |
-| PUT | `/api/leads/{id}` | Update lead | Admin JWT | Path variable: `id`, Body: Lead update data |
-| PATCH | `/api/leads/{id}/status` | Update lead status | Admin JWT | Path variable: `id`, Query param: `status` (NEW, IN_PROGRESS, CONTACTED, REJECTED, APPROVED) |
-| DELETE | `/api/leads/{id}` | Delete lead | Admin JWT | Path variable: `id` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| GET | `/api/leads/{id}` | Get lead by ID | Basic Auth | Path variable: `id` | 200 OK, 404 Not Found |
+| GET | `/api/leads/summary` | Get summary of all leads | Basic Auth | None | 200 OK |
+| GET | `/api/leads/get-id` | Get lead ID by email | Basic Auth | Query param: `email` | 200 OK, 404 Not Found |
+| GET | `/api/leads/metrics` | Get dashboard metrics | Basic Auth | None | 200 OK |
+| POST | `/api/leads` | Create new lead | Public | ```{ "source": "website", "preferredStartDate": "2025-12-31", "salonName": "Beauty Salon", "branchNumber": "B001", "city": "Mumbai", "avgMonthlyFootfall": 500, "clientType": "Premium", "contactName": "John Doe", "contactEmail": "john@example.com", "contactPhone": "1234567890", "contactDesignation": "Manager", "businessType": "Salon", "gstin": "22AAAAA0000A1Z5" }``` | 200 OK, 400 Bad Request |
+| PUT | `/api/leads/{id}` | Update lead | Basic Auth | Path variable: `id`, Body: Lead update data | 200 OK, 400 Bad Request, 404 Not Found |
+| PATCH | `/api/leads/{id}/status` | Update lead status | Basic Auth | Path variable: `id`, Query param: `status` (NEW, IN_PROGRESS, CONTACTED, REJECTED, APPROVED) | 200 OK, 400 Bad Request, 404 Not Found |
+| DELETE | `/api/leads/{id}` | Delete lead | Basic Auth | Path variable: `id` | 204 No Content, 404 Not Found |
 
 ---
 
@@ -79,21 +81,20 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Staff Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| GET | `/api/salon-user/id-email` | Get all salon IDs and emails | JWT | None |
-| GET | `/api/salon-user/get-id` | Get user ID by email | JWT | Query param: `email` |
-| GET | `/api/salon-user/get-all` | Get all salon users | JWT | None |
-| GET | `/api/salon-user/salon-staff` | Get all staff for a salon | JWT | Query params: `salonId`, `requestedBy` |
-| GET | `/api/salon-user/staff/{staffId}` | Get staff by ID | JWT | Path variable: `staffId`, Query param: `requestedBy` |
-| PUT | `/api/salon-user/staff/update-status` | Update staff status | JWT | ```{ "staffId": "uuid", "active": true, "updatedBy": "uuid" }``` |
-| PUT | `/api/salon-user/staff/update-details` | Update staff details | JWT | Query params: `staffId`, `updatedBy`, Body: Staff details |
-| PUT | `/api/salon-user/cancel-delete/{staffId}` | Cancel staff deletion | JWT | Path variable: `staffId`, Query param: `deletedBy` |
-| DELETE | `/api/salon-user/{staffId}` | Mark staff for deletion | JWT | Path variable: `staffId`, Query param: `deletedBy` |
-| DELETE | `/api/salon-user/delete/{staffId}` | Permanently delete staff | JWT | Path variable: `staffId`, Query param: `deletedBy` |
-| POST | `/api/salon-user/register` | Register staff manually | JWT | ```{ "name": "Staff Name", "email": "staff@example.com", "phone": "1234567890", "role": "STYLIST", "salonId": "uuid", "registeredBy": "uuid" }``` |
-| POST | `/api/salon-user/invite` | Invite staff | JWT | ```{ "email": "staff@example.com", "role": "STYLIST", "salonId": "uuid" }```, Query param: `invitedBy` |
-| POST | `/api/salon-user/complete-staff-registration` | Complete staff registration | Public | ```{ "token": "token", "staffId": "uuid", "password": "password", "name": "Staff Name", "phone": "1234567890" }``` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| GET | `/api/salon-user/id-email` | Get all salon IDs and emails | JWT | None | 200 OK |
+| GET | `/api/salon-user/get-id` | Get user ID by email | JWT | Query param: `email` | 200 OK, 404 Not Found |
+| GET | `/api/salon-user/get-all` | Get all salon users | JWT | None | 200 OK |
+| GET | `/api/salon-user/salon-staff` | Get all staff for a salon | JWT | Query params: `salonId` | 200 OK, 403 Forbidden |
+| GET | `/api/salon-user/staff/{staffId}` | Get staff by ID | JWT | Path variable: `staffId` | 200 OK, 403 Forbidden, 404 Not Found |
+| PUT | `/api/salon-user/staff/update-status` | Update staff status | JWT | ```{ "staffId": "uuid", "active": true }``` | 200 OK, 400 Bad Request, 403 Forbidden |
+| PUT | `/api/salon-user/staff/update-details` | Update staff details | JWT | Query param: `staffId`, Body: Staff details | 200 OK, 400 Bad Request, 403 Forbidden |
+| DELETE | `/api/salon-user/{staffId}` | Mark staff for deletion | JWT | Path variable: `staffId` | 200 OK, 403 Forbidden, 404 Not Found |
+| DELETE | `/api/salon-user/delete/{staffId}` | Permanently delete staff | JWT | Path variable: `staffId` | 204 No Content, 403 Forbidden, 404 Not Found |
+| POST | `/api/salon-user/register` | Register staff manually | JWT | ```{ "name": "Staff Name", "email": "staff@example.com", "phone": "1234567890", "role": "STYLIST", "salonId": "uuid" }``` | 200 OK, 400 Bad Request, 403 Forbidden |
+| POST | `/api/salon-user/invite` | Invite staff | JWT | ```{ "email": "staff@example.com", "role": "STYLIST", "salonId": "uuid" }``` | 200 OK, 400 Bad Request, 403 Forbidden |
+| POST | `/api/salon-user/complete-registration` | Complete staff registration | Public | ```{ "token": "token", "staffId": "uuid", "password": "password", "name": "Staff Name", "phone": "1234567890" }``` | 200 OK, 400 Bad Request |
 
 ---
 
@@ -101,18 +102,17 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Client Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| POST | `/api/client` | Create client | JWT | ```{ "firstName": "John", "lastName": "Doe", "email": "client@example.com", "phone": "1234567890", "dateOfBirth": "1990-01-01", "gender": "MALE", "notes": "Client notes" }``` |
-| PATCH | `/api/client/{clientId}` | Update client | JWT | Path variable: `clientId`, Body: Client update data |
-| DELETE | `/api/client/{clientId}` | Delete client (soft) | JWT | Path variable: `clientId` |
-| PATCH | `/api/client/{clientId}/cancel-delete` | Cancel client deletion | JWT | Path variable: `clientId` |
-| GET | `/api/client/{clientId}` | Get client by ID | JWT | Path variable: `clientId` |
-| GET | `/api/client/all` | Get all clients of salon | JWT | None |
-| GET | `/api/client/assigned` | Get clients assigned to staff | JWT | None |
-| GET | `/api/client/assigned/{staffId}` | Get clients assigned to specific staff | JWT | Path variable: `staffId` |
-| GET | `/api/client` | Get paginated clients | JWT | Query params: `page` (default: 0), `size` (default: 10) |
-| PATCH | `/api/client/{clientId}/assign/{newStaffId}` | Reassign client to new staff | JWT | Path variables: `clientId`, `newStaffId` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| POST | `/api/client` | Create client | JWT + MANAGE_CLIENTS | ```{ "firstName": "John", "lastName": "Doe", "email": "client@example.com", "phone": "1234567890", "dateOfBirth": "1990-01-01", "gender": "MALE", "notes": "Client notes" }``` | 200 OK, 400 Bad Request, 403 Forbidden |
+| PATCH | `/api/client/{clientId}` | Update client | JWT + MANAGE_CLIENTS | Path variable: `clientId`, Body: Client update data | 200 OK, 400 Bad Request, 403 Forbidden, 404 Not Found |
+| DELETE | `/api/client/{clientId}` | Delete client (soft) | JWT + REMOVE_CLIENT | Path variable: `clientId` | 204 No Content, 403 Forbidden, 404 Not Found |
+| GET | `/api/client/{clientId}` | Get client by ID | JWT + VIEW_CLIENT_HISTORY | Path variable: `clientId` | 200 OK, 403 Forbidden, 404 Not Found |
+| GET | `/api/client/all` | Get all clients of salon | JWT + MANAGE_CLIENTS | None | 200 OK, 403 Forbidden |
+| GET | `/api/client/assigned` | Get clients assigned to staff | JWT | None | 200 OK |
+| GET | `/api/client/assigned/{staffId}` | Get clients assigned to specific staff | JWT + MANAGE_CLIENTS | Path variable: `staffId` | 200 OK, 403 Forbidden, 404 Not Found |
+| GET | `/api/client` | Get paginated clients | JWT + MANAGE_CLIENTS | Query params: `page` (default: 0), `size` (default: 10) | 200 OK, 403 Forbidden |
+| PATCH | `/api/client/{clientId}/assign/{newStaffId}` | Reassign client to new staff | JWT + MANAGE_CLIENTS | Path variables: `clientId`, `newStaffId` | 200 OK, 403 Forbidden, 404 Not Found |
 
 ---
 
@@ -120,15 +120,15 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Scan Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| POST | `/api/scans/create-session` | Create scan session | JWT | Query params: `clientId`, `salonUserId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment", "notes": "Scan notes" }``` |
-| POST | `/api/scans/complete` | Complete scan (ML callback) | System | ```{ "scanSessionId": "uuid", "status": "success/failed", "error": "Error message if failed", ... }``` |
-| GET | `/api/scans/{scanSessionId}` | Get scan details | JWT | Path variable: `scanSessionId` |
-| GET | `/api/scans/{clientId}/all` | Get all scans for client | JWT | Path variable: `clientId` |
-| GET | `/api/scans/{clientId}/dashboard-scans` | Get paginated scans for client | JWT | Path variable: `clientId`, Pageable params |
-| GET | `/api/scans/{scanSessionId}/status` | Check scan status | JWT | Path variable: `scanSessionId` |
-| DELETE | `/api/scans/scans/{scanSessionId}` | Delete scan | JWT | Path variable: `scanSessionId` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| POST | `/api/scans/create-session` | Create scan session | JWT + CREATE_SCAN | Query param: `clientId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment", "notes": "Scan notes" }``` | 201 Created, 400 Bad Request, 403 Forbidden |
+| POST | `/api/scans/complete` | Complete scan (ML callback) | System | ```{ "scanSessionId": "uuid", "status": "success/failed", "error": "Error message if failed", ... }``` | 200 OK, 400 Bad Request |
+| GET | `/api/scans/{scanSessionId}` | Get scan details | JWT + VIEW_SCAN | Path variable: `scanSessionId` | 200 OK, 202 Accepted, 403 Forbidden, 404 Not Found |
+| GET | `/api/scans/{clientId}/all` | Get all scans for client | JWT + VIEW_SCAN | Path variable: `clientId` | 200 OK, 403 Forbidden, 404 Not Found |
+| GET | `/api/scans/{clientId}/dashboard-scans` | Get paginated scans for client | JWT + VIEW_SCAN | Path variable: `clientId`, Pageable params | 200 OK, 403 Forbidden, 404 Not Found |
+| GET | `/api/scans/{scanSessionId}/status` | Check scan status | JWT + VIEW_SCAN | Path variable: `scanSessionId` | 200 OK, 403 Forbidden, 404 Not Found |
+| DELETE | `/api/scans/{scanSessionId}` | Delete scan | JWT + DELETE_SCAN | Path variable: `scanSessionId` | 200 OK, 403 Forbidden, 404 Not Found |
 
 ---
 
@@ -136,13 +136,14 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### Anonymous Scan Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| POST | `/api/anonscans/{anonId}` | Create anonymous scan | Public | Path variable: `anonId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment" }``` |
-| GET | `/api/anonscans/{anonId}/usage` | Check usage limits | Public | Path variable: `anonId` |
-| GET | `/api/anonscans/result/{sessionId}` | Get scan result | Public | Path variable: `sessionId` |
-| POST | `/api/anonscans/{anonId}/link` | Link anonymous scans to client | Public | Path variable: `anonId`, Query param: `clientId` |
-| POST | `/api/anonscans/analysis` | Receive ML analysis result | System | Analysis result data |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| POST | `/api/anonscans/{anonId}` | Create anonymous scan | Public | Path variable: `anonId`, Body: ```{ "imageUrl": "https://example.com/image.jpg", "sessionPurpose": "Initial Assessment" }``` | 201 Created, 400 Bad Request, 429 Too Many Requests |
+| GET | `/api/anonscans/{anonId}/usage` | Check usage limits | Public | Path variable: `anonId` | 200 OK |
+| GET | `/api/anonscans/result/{sessionId}` | Get scan result | Public | Path variable: `sessionId` | 200 OK, 202 Accepted, 404 Not Found |
+| GET | `/api/anonscans/results/{anonId}` | Get all scan results for user | Public | Path variable: `anonId` | 200 OK |
+| POST | `/api/anonscans/{anonId}/link` | Link anonymous scans to client | Public | Path variable: `anonId`, Query param: `clientId` | 204 No Content, 400 Bad Request, 404 Not Found |
+| POST | `/api/anonscans/analysis` | Receive ML analysis result | System | Analysis result data | 204 No Content, 400 Bad Request |
 
 ---
 
@@ -150,12 +151,94 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 ### OTP Operations
 
-| Method | Endpoint | Description | Access | Request Format |
-|--------|----------|-------------|--------|----------------|
-| POST | `/api/otp/send` | Send OTP | Public | ```{ "phone": "1234567890" }``` |
-| POST | `/api/otp/verify` | Verify OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` |
+| Method | Endpoint | Description | Access | Request Format | Status Codes |
+|--------|----------|-------------|--------|----------------|-------------|
+| POST | `/api/otp/send` | Send OTP | Public | ```{ "phone": "1234567890" }``` | 200 OK, 400 Bad Request |
+| POST | `/api/otp/verify` | Verify OTP | Public | ```{ "phone": "1234567890", "otp": "123456" }``` | 200 OK, 400 Bad Request |
 
 ---
+
+## Status Codes
+
+The API uses standard HTTP status codes to indicate the success or failure of requests:
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 OK | The request was successful and the response contains the requested data |
+| 201 Created | The request was successful and a new resource was created |
+| 202 Accepted | The request has been accepted for processing but is not yet complete (used for scan polling) |
+| 204 No Content | The request was successful but there is no content to return (often used for DELETE operations) |
+| 400 Bad Request | The request was malformed or contained invalid parameters |
+| 401 Unauthorized | Authentication is required or the provided credentials are invalid |
+| 403 Forbidden | The authenticated user does not have permission to access the requested resource |
+| 404 Not Found | The requested resource could not be found |
+| 409 Conflict | The request could not be completed due to a conflict with the current state of the resource |
+| 429 Too Many Requests | The user has sent too many requests in a given amount of time (rate limiting) |
+| 500 Internal Server Error | An unexpected error occurred on the server |
+
+## Error Handling
+
+### Common Error Response Structures
+
+The API returns consistent error responses across all endpoints:
+
+1. **Validation Errors** (400 Bad Request):
+   ```json
+   {
+     "fieldName1": "Error message for field 1",
+     "fieldName2": "Error message for field 2"
+   }
+   ```
+
+2. **Authentication Errors** (401 Unauthorized):
+   ```json
+   {
+     "error": "Unauthorized - Login required"
+   }
+   ```
+
+3. **Permission Errors** (403 Forbidden):
+   ```json
+   {
+     "error": "You do not have permission to perform this action."
+   }
+   ```
+
+4. **Resource Not Found** (404 Not Found):
+   ```json
+   {
+     "error": "Resource not found"
+   }
+   ```
+
+5. **Conflict Errors** (409 Conflict):
+   ```json
+   {
+     "error": "Resource already exists"
+   }
+   ```
+
+6. **Rate Limiting** (429 Too Many Requests):
+   ```json
+   {
+     "error": "Scan limit exceeded"
+   }
+   ```
+
+7. **Server Errors** (500 Internal Server Error):
+   ```json
+   {
+     "error": "An unexpected server error occurred. Please try again later."
+   }
+   ```
+
+8. **Scan Not Ready** (202 Accepted):
+   ```json
+   {
+     "status": "PENDING",
+     "message": "Scan analysis not available yet for session: [sessionId]"
+   }
+   ```
 
 ## Response Formats
 
@@ -174,10 +257,7 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
 
 4. **Scan Responses**:
    - Session: `{ "id": "uuid", "imageUrl": "https://example.com/image.jpg", "scannedAt": "2023-01-01T12:00:00", "sessionPurpose": "Initial Assessment", "status": "PENDING" }`
-   - Details: `{ "id": "uuid", "imageUrl": "https://example.com/image.jpg", "scannedAt": "2023-01-01T12:00:00", "sessionPurpose": "Initial Assessment", "status": "COMPLETED", "analysis": { ... }, "regionMetrics": [...], "visualOutputs": [...] }`
-
-5. **Error Responses**:
-   - `{ "status": 400, "message": "Error message", "timestamp": "2023-01-01T12:00:00" }`
+   - Details: `{ "id": "uuid", "imageUrl": "https://example.com/image.jpg", "scannedAt": "2023-01-01T12:00:00", "sessionPurpose": "Initial Assessment", "overallGlowIndex": 85.5, "regionMetrics": [...], "visualOutputs": [...] }`
 
 ## Authentication Headers
 
@@ -185,6 +265,12 @@ This document provides a comprehensive guide to the PartnerWithUs API endpoints 
   ```
   Authorization: Bearer <access_token>
   ```
+
+- **Basic Authentication** (for Partner Lead endpoints):
+  ```
+  Authorization: Basic <base64(username:password)>
+  ```
+  Default credentials: username=admin, password=eagle123
 
 - **Client Type Header**: For mobile clients, include the client type header:
   ```
